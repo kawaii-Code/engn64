@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YAPAS</title>
+</head>
+<body>
+    <script src="raylib.js"></script>
+    <canvas id="game" width="640" height="640"></canvas>
+    <script>
+        const raylibJs = new RaylibJs();
+        raylibJs.start({
+            wasmPath: "yapas.wasm",
+            canvasId: "game",
+        });
+    </script>
+</body>
+</html>

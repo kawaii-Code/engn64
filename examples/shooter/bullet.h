@@ -1,0 +1,10 @@
+#ifndef BULLET_H_
+#define BULLET_H_
+size_t bullet_width = 4;
+size_t bullet_height = 4;
+uint32_t bullet_pixels[] = {
+   0x00000000,0xFF000000,0xFF000000,0x00000000,0xFF000000,0xFF36F2FB,0xFF36F2FB,
+   0xFF000000,0xFF000000,0xFF36F2FB,0xFF36F2FB,0xFF000000,0x00000000,0xFF000000,
+   0xFF000000,0x00000000,
+};
+#endif // BULLET_H_
