@@ -407,6 +407,10 @@ void reload_current_level(Game *game) {
     game->current_level = copy;
 }
 
+void draw_all_pixels_to_the_canvas_through_the_madness_of_wasm_and_js(uint32 *pixels);
+void PlayWebSound(const char *sound_name);
+void LoadWebSound(const char *sound_name);
+
 void init(void) {
     Game *game = &global_game;
     *game = (Game){0};
@@ -483,19 +487,15 @@ void init(void) {
         }
     };
 
-    //game->sounds = (Game_Sounds) {
-    //    .jump = LoadSoundFromWave(jump),
-    //    .scaling = LoadSoundFromWave(scaling),
-    //    .pickup = LoadSoundFromWave(pickup),
-    //    .next_level = LoadSoundFromWave(next_level),
-    //    .flash = LoadSoundFromWave(flash),
-    //    .retry = LoadSoundFromWave(retry),
-    //};
+    LoadWebSound("jump.wav");
+    LoadWebSound("scaling.wav");
+    LoadWebSound("pickup.wav");
+    LoadWebSound("next_level.wav");
+    LoadWebSound("flash.wav");
+    LoadWebSound("retry.wav");
 
     reload_current_level(game);
 }
-
-void draw_all_pixels_to_the_canvas_through_the_madness_of_wasm_and_js(uint32 *pixels);
 
 void update_and_draw() {
     BeginDrawing();
@@ -516,19 +516,20 @@ void update_and_draw() {
 
     if (IsKeyPressed(KEY_X) || IsKeyPressed(KEY_R)) {
         reload_current_level(game);
-        // PlaySound(game->sounds.retry);
+        Sound s = {0};
+        PlayWebSound("retry.wav");
     }
     if (IsKeyPressed(KEY_P) || IsKeyPressed(KEY_COMMA)) {
         if (game->current_level_index > 0) {
             game->current_level_index -= 1;
-            // PlaySound(game->sounds.next_level);
+            PlayWebSound("next_level.wav");
         }
         reload_current_level(game);
     }
     if (IsKeyPressed(KEY_N) || IsKeyPressed(KEY_PERIOD)) {
         if (game->current_level_index < LEVELS_COUNT) {
             game->current_level_index += 1;
-            // PlaySound(game->sounds.next_level);
+            PlayWebSound("next_level.wav");
         }
         reload_current_level(game);
     }
@@ -638,7 +639,7 @@ void update_and_draw() {
         *player_was_falling_last_frame = !player_is_on_ground;
         if (player->jump_buffer.remaining > 0) {
             if (player_is_on_ground || player->coyote_time.remaining > 0.0f) {
-                // PlaySound(game->sounds.jump);
+                PlayWebSound("jump.wav");
                 player->velocity_y = PLAYER_INITIAL_JUMP_SPEED;
                 player->coyote_time.remaining = 0.0f;
                 player->jump_buffer.remaining = 0.0f;
@@ -695,7 +696,9 @@ void update_and_draw() {
                 Simulate_Step_Result result = simulate_step(current_level, player_step_width);
                 if (!result.has_conflict) {
                     player->rect = player_step_width.after;
-                    // PlaySound(game->sounds.scaling);
+                    if (player->scaling.remaining % 2 == 0) {
+                        PlayWebSound("scaling.wav");
+                    }
                     player->scaling.remaining -= 1;
                 }
 
@@ -710,7 +713,9 @@ void update_and_draw() {
                 Simulate_Step_Result result = simulate_step(current_level, player_step_height);
                 if (!result.has_conflict) {
                     player->rect = player_step_height.after;
-                    // PlaySound(game->sounds.scaling);
+                    if (player->scaling.remaining % 2 == 0) {
+                        PlayWebSound("scaling.wav");
+                    }
                     player->scaling.remaining -= 1;
                 }
 
@@ -725,15 +730,15 @@ void update_and_draw() {
 
 
 
-        if (rect_intersect_rect_int8(player->rect, current_level->key)) {
-            // PlaySound(game->sounds.pickup);
+        if (!player->has_key && rect_intersect_rect_int8(player->rect, current_level->key)) {
+            PlayWebSound("pickup.wav");
             player->has_key = true;
         }
         
         if (rect_intersect_rect_int8(player->rect, current_level->door.rect)) {
             if (player->has_key) {
                 if (game->current_level_index < LEVELS_COUNT) {
-                    // PlaySound(game->sounds.next_level);
+                    PlayWebSound("next_level.wav");
                     game->current_level_index += 1;
                 }
                 reload_current_level(game);
@@ -846,7 +851,7 @@ void update_and_draw() {
                 player->flash_color = !player->flash_color;
                 player->flash_timer.remaining = PLAYER_FLASH_TIME;
                 if (player->flash_color) {
-                    // PlaySound(game->sounds.flash);
+                    PlayWebSound("flash.wav");
                 }
             }
         } else {

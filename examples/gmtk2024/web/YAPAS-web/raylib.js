@@ -40,6 +40,7 @@ class RaylibJs {
         this.entryFunction = undefined;
         this.prevPressedKeyState = new Set();
         this.currentPressedKeyState = new Set();
+        this.sounds = {};
         this.currentMouseWheelMoveState = 0;
         this.currentMousePosition = {x: 0, y: 0};
         this.images = [];
@@ -78,6 +79,8 @@ class RaylibJs {
             throw new Error("Could not create 2d canvas context");
         }
 
+        this.audioContext = new AudioContext();
+
         this.wasm = await WebAssembly.instantiateStreaming(fetch(wasmPath), {
             env: make_environment(this)
         });
@@ -89,7 +92,7 @@ class RaylibJs {
             this.currentPressedKeyState.delete(glfwKeyMapping[e.code]);
         };
         const wheelMove = (e) => {
-          this.currentMouseWheelMoveState = Math.sign(-e.deltaY);
+            this.currentMouseWheelMoveState = Math.sign(-e.deltaY);
         };
         const mouseMove = (e) => {
             this.currentMousePosition = {x: e.clientX, y: e.clientY};
@@ -132,6 +135,32 @@ class RaylibJs {
     SetTargetFPS(fps) {
         console.log(`The game wants to run at ${fps} FPS, but in Web we gonna just ignore it.`);
         this.targetFPS = fps;
+    }
+
+    async LoadWebSound(sound_name_ptr) {
+        const buffer = this.wasm.instance.exports.memory;
+        const sound_name = cstr_by_ptr(buffer.buffer, sound_name_ptr);
+        console.log(`loading: ${sound_name}`);
+
+        const clip = await fetch(sound_name)
+            .then(res => res.arrayBuffer())
+            .then(res => this.audioContext.decodeAudioData(res));
+        this.sounds[sound_name] = clip;
+    }
+
+    PlayWebSound(sound_name_ptr) {
+        const buffer = this.wasm.instance.exports.memory.buffer;
+        const sound_name = cstr_by_ptr(buffer, sound_name_ptr)
+
+        const clip = this.sounds[sound_name];
+        if (clip === undefined) {
+            throw new Error(`Sound '${sound_name}' not loaded!`);
+        }
+
+        const source = this.audioContext.createBufferSource();
+        source.buffer = clip;
+        source.connect(this.audioContext.destination);
+        source.start();
     }
 
     GetScreenWidth() {
