@@ -1,11 +1,9 @@
 #ifndef ENGN_64_H
 #define ENGN_64_H
 
-
-
 #include "raylib.h"
 
-
+#define assert(x) if (!(x)) { *(volatile char *)0 = 0; }
 
 typedef char               int8;
 typedef unsigned char      uint8;
@@ -33,17 +31,9 @@ typedef union {
     struct { float32 x, y; };
 } float32x2;
 
-typedef Rectangle Rect_Float32;
 typedef struct {
-    int8 x, y, width, height;
-} Rect_Int8;
-typedef struct {
-    int32 x, y, width, height;
-} Rect_Int32;
-
-typedef struct {
-    bool8 pressed;
-    bool8 just_pressed;
+    bool32 pressed;
+    bool32 just_pressed;
 } Input_Button;
 
 // @improvement Rename btn* to triangle, square, ...?
@@ -59,9 +49,5 @@ typedef struct {
 typedef struct {
     uint32 pixels[64 * 64]; // pixel format: ABGR
 } Screen;
-
-#define assert(x) if (!(x)) { *(volatile char *)0 = 0; }
-
-
 
 #endif // ENGN_64_H
